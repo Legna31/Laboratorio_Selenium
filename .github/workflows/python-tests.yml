@@ -39,7 +39,7 @@ jobs:
 
       - name: Ejecutar pruebas
         run: |
-          pytest test_tienda.py --html=reporte.html --self-contained-html
+          pytest test_tienda.py test_practico.py --html=reporte.html --self-contained-html
 
       - name: Guardar reporte
         if: always()
