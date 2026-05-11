@@ -1,36 +1,36 @@
-from selenium import webdriver
+import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from login_page import LoginPage
 
-driver = webdriver.Chrome()
 
-wait = WebDriverWait(driver, 10)
-
-try:
-
-    # LOGIN EXITOSO
-
+def test_login_exitoso_robust(driver):
+    """LOGIN EXITOSO con esperas explícitas"""
     driver.get("https://www.saucedemo.com")
 
-    user_input = wait.until(
-        EC.visibility_of_element_located((By.ID, "user-name"))
-    )
+    login = LoginPage(driver)
+    login.ingresar_credenciales("standard_user", "secret_sauce")
+    login.click_login()
 
-    user_input.send_keys("standard_user")
+    assert "inventory.html" in driver.current_url
 
-    driver.find_element(By.ID, "password").send_keys("secret_sauce")
 
-    driver.find_element(By.ID, "login-button").click()
+def test_agregar_producto_robust(driver):
+    """AGREGAR PRODUCTO con esperas robustas"""
+    driver.get("https://www.saucedemo.com")
 
-    # AGREGAR PRODUCTO
+    login = LoginPage(driver)
+    login.ingresar_credenciales("standard_user", "secret_sauce")
+    login.click_login()
 
+    wait = WebDriverWait(driver, 10)
+    
     boton = wait.until(
         EC.element_to_be_clickable(
             (By.ID, "add-to-cart-sauce-labs-backpack")
         )
     )
-
     boton.click()
 
     badge = wait.until(
@@ -39,26 +39,16 @@ try:
         )
     )
 
-    print(f"Productos en carrito: {badge.text}")
+    assert badge.text == "1"
 
-    # LOGIN FALLIDO
 
+def test_login_fallido_robust(driver):
+    """LOGIN FALLIDO con usuario bloqueado"""
     driver.get("https://www.saucedemo.com")
 
-    driver.find_element(By.ID, "user-name").send_keys("locked_out_user")
+    login = LoginPage(driver)
+    login.ingresar_credenciales("locked_out_user", "secret_sauce")
+    login.click_login()
 
-    driver.find_element(By.ID, "password").send_keys("secret_sauce")
-
-    driver.find_element(By.ID, "login-button").click()
-
-    error = wait.until(
-        EC.visibility_of_element_located(
-            (By.CSS_SELECTOR, "h3[data-test='error']")
-        )
-    )
-
-    print(error.text)
-
-finally:
-
-    driver.quit()
+    error = login.obtener_error()
+    assert "locked out" in error

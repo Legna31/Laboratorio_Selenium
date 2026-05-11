@@ -1,10 +1,7 @@
-from selenium import webdriver
-
+import pytest
 from login_page import LoginPage
 
-def test_pom():
-
-    driver = webdriver.Chrome()
+def test_pom(driver):
 
     driver.get("https://www.saucedemo.com")
 
@@ -19,9 +16,4 @@ def test_pom():
 
     mensaje = login.obtener_error()
 
-    print(mensaje)
-
-    driver.quit()
-
-if __name__ == "__main__":
-    test_pom()
+    assert "locked out" in mensaje

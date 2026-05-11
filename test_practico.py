@@ -1,61 +1,41 @@
-from selenium import webdriver
+import pytest
 from selenium.webdriver.common.by import By
-import time
+from login_page import LoginPage
 
-driver = webdriver.Chrome()
-driver.implicitly_wait(10)
+def test_login_exitoso_practico(driver):
+    """CASO 1: LOGIN EXITOSO"""
+    driver.get("https://www.saucedemo.com")
 
-def ejecutar_pruebas():
-    try:
+    login = LoginPage(driver)
+    login.ingresar_credenciales("standard_user", "secret_sauce")
+    login.click_login()
 
-        # CASO 1 LOGIN EXITOSO
-        print("Ejecutando Login Exitoso")
+    assert "inventory.html" in driver.current_url
 
-        driver.get("https://www.saucedemo.com")
 
-        driver.find_element(By.ID, "user-name").send_keys("standard_user")
-        driver.find_element(By.ID, "password").send_keys("secret_sauce")
-        driver.find_element(By.ID, "login-button").click()
+def test_agregar_producto_carrito(driver):
+    """CASO 2: AGREGAR AL CARRITO"""
+    driver.get("https://www.saucedemo.com")
 
-        assert "inventory.html" in driver.current_url
+    login = LoginPage(driver)
+    login.ingresar_credenciales("standard_user", "secret_sauce")
+    login.click_login()
 
-        print("Login exitoso completado")
+    boton = driver.find_element(By.ID, "add-to-cart-sauce-labs-backpack")
+    boton.click()
 
-        # CASO 2 AGREGAR AL CARRITO
+    carrito = driver.find_element(By.CLASS_NAME, "shopping_cart_badge").text
+    assert carrito == "1"
 
-        print("Agregando producto")
 
-        boton = driver.find_element(By.ID, "add-to-cart-sauce-labs-backpack")
-        boton.click()
+def test_login_fallido_practico(driver):
+    """CASO 3: LOGIN FALLIDO"""
+    driver.delete_all_cookies()
+    driver.get("https://www.saucedemo.com")
 
-        carrito = driver.find_element(By.CLASS_NAME, "shopping_cart_badge").text
+    login = LoginPage(driver)
+    login.ingresar_credenciales("locked_out_user", "secret_sauce")
+    login.click_login()
 
-        assert carrito == "1"
-
-        print("Producto agregado correctamente")
-
-        # CASO 3 LOGIN FALLIDO
-
-        driver.delete_all_cookies()
-
-        driver.get("https://www.saucedemo.com")
-
-        driver.find_element(By.ID, "user-name").send_keys("locked_out_user")
-        driver.find_element(By.ID, "password").send_keys("secret_sauce")
-        driver.find_element(By.ID, "login-button").click()
-
-        error = driver.find_element(By.CSS_SELECTOR, "h3[data-test='error']").text
-
-        assert "locked out" in error
-
-        print("Validación de usuario bloqueado correcta")
-
-    except Exception as e:
-        print(f"Error: {e}")
-
-    finally:
-        time.sleep(3)
-        driver.quit()
-
-if __name__ == "__main__":
-    ejecutar_pruebas()
+    error = login.obtener_error()
+    assert "locked out" in error

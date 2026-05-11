@@ -1,17 +1,6 @@
 import pytest
 
-from selenium import webdriver
-
 from login_page import LoginPage
-
-@pytest.fixture
-def driver():
-
-    driver = webdriver.Chrome()
-
-    yield driver
-
-    driver.quit()
 
 def test_login_exitoso(driver):
 
